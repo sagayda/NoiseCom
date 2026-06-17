@@ -48,7 +48,7 @@ public readonly struct OctahedralWeighted<[ModelHash] THash> : IAnalyticalGradie
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private (float Gx, float Gy) GetGradient(THash hash)
+    public (float Gx, float Gy) GetGradient(THash hash)
     {
         const float reciprocal7 = 1f / 7f;
 

@@ -1,15 +1,19 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using NoiseCom.Noise.Hash;
-using NoiseCom.Serialization;
 
 namespace NoiseCom.Noise.Gradients.TwoDimensional;
 
-// TODO: configurable bytes count for angle and length
-[ModelType("CircularWeighted")]
-public readonly struct CircularWeighted<[ModelHash] THash> : IAnalyticalGradient2D<THash>
+public readonly struct Precalculated2D<THash> : IAnalyticalGradient2D<THash>
     where THash : IHash8<THash>
 {
+    private readonly float[] _values;
+
+    private Precalculated2D(float[] values)
+    {
+        _values = values;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float Evaluate(THash hash, float x, float y)
     {
@@ -23,7 +27,7 @@ public readonly struct CircularWeighted<[ModelHash] THash> : IAnalyticalGradient
     {
         var (gx, gy) = GetGradient(hash);
 
-        return ((gx * x) + (gy * y), new(gx, gy));
+        return ((gx * x) + (gy * y), new Vector2(gx, gy));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -51,23 +55,24 @@ public readonly struct CircularWeighted<[ModelHash] THash> : IAnalyticalGradient
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public (float Gx, float Gy) GetGradient(THash hash)
     {
-        const float recipocal32 = 1f / 32f;
-        const float recipocal7 = 1f / 7f;
-
         var h = hash.HashByte();
 
-        // convert the first bytes into the angle
-        float angle = (h & 0b11111) * recipocal32 * 2f * MathF.PI; // (h & 0b11111) / 32 * 2 * PI
-        // convert the remaining bytes into the length
-        float length = (h >> 5) * recipocal7; // (h & 0b111) / 7f
+        return (_values[h], _values[h | 256]);
+    }
 
-        // NOTE: square length is not necessary
-        // This only changes the length distribution
-        // Can be used to control the amount of flat regions in the resulting noise
-        length *= length;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Precalculated2D<THash> Create<TGradient>(TGradient basedOn)
+        where TGradient : struct, IGradient2D<DummyHash8>
+    {
+        float[] buffer = new float[512];
 
-        (float gx, float gy) = MathF.SinCos(angle);
+        for (int i = 0; i < 256; i++)
+        {
+            var (gx, gy) = basedOn.GetGradient(new DummyHash8((byte)i));
+            buffer[i] = gx;
+            buffer[i | 256] = gy;
+        }
 
-        return (gx * length, gy * length);
+        return new(buffer);
     }
 }

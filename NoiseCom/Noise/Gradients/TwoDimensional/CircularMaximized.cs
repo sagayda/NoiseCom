@@ -47,6 +47,11 @@ public readonly struct CircularMaximized<[ModelHash] THash> : IAnalyticalGradien
         return GetGradient(x, y);
     }
 
+    public (float Gx, float Gy) GetGradient(THash hash)
+    {
+        throw new NotImplementedException();
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private (float Gx, float Gy) GetGradient(float x, float y)
     {

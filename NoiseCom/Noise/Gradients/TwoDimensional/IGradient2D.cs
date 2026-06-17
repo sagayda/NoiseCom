@@ -6,4 +6,5 @@ public interface IGradient2D<THash>
     where THash : IHash8<THash>
 {
     public float Evaluate(THash hash, float x, float y);
+    public (float Gx, float Gy) GetGradient(THash hash);
 }

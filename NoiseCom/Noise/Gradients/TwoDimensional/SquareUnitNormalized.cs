@@ -49,7 +49,7 @@ public readonly struct SquareUnitNormalized<[ModelHash] THash> : IAnalyticalGrad
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private (float Gx, float Gy) GetGradient(THash hash)
+    public (float Gx, float Gy) GetGradient(THash hash)
     {
         var h = hash.NextFloat8();
         float gx = (h * 2f) - 1f;

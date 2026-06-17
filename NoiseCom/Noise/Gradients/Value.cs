@@ -61,9 +61,20 @@ public readonly struct Value<[ModelHash] THash>
         return (0f, 0f);
     }
 
+    public (float Gx, float Gy) GetGradient(THash hash)
+    {
+        return (0f, 0f);
+    }
+
+    float IGradient1D<THash>.GetGradient(THash hash)
+    {
+        return 0f;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private float GetValue(THash hash)
     {
+        // TODO: Add NextSignedFloat8
         return (hash.NextFloat8() * 2f) - 1f; // [0; 1] * 2f - 1f => [-1; 1]
     }
 }

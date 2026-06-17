@@ -31,7 +31,7 @@ public readonly struct LinearSolid<[ModelHash] THash> : IAnalyticalGradient1D<TH
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float GetGradient(THash hash)
+    public float GetGradient(THash hash)
     {
         const float scale = 1f / 127f;
 
