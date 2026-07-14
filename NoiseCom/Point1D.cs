@@ -24,6 +24,9 @@ public readonly struct Point1D(float value) : IDimensionalPoint<Point1D>
     public static Point1D operator *(Point1D left, float right) => new(left.Value * right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Point1D operator *(float left, Point1D right) => new(right.Value * left);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Point1D operator /(Point1D left, float right) => new(left.Value / right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

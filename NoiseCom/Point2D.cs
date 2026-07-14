@@ -41,6 +41,9 @@ public readonly struct Point2D : IDimensionalPoint<Point2D>
     public static Point2D operator *(Point2D left, float right) => new(left.Value * right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Point2D operator *(float left, Point2D right) => new(right.Value * left);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Point2D operator /(Point2D left, float right) => new(left.Value / right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
