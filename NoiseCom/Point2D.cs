@@ -48,4 +48,7 @@ public readonly struct Point2D : IDimensionalPoint<Point2D>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Point2D(Vector2 value) => new(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float LengthSquared() => (X * X) + (Y * Y);
 }

@@ -31,4 +31,7 @@ public readonly struct Point1D(float value) : IDimensionalPoint<Point1D>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Point1D(float value) => new(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float LengthSquared() => X * X;
 }
