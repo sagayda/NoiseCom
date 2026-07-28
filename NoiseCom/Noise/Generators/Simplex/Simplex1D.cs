@@ -12,32 +12,41 @@ public class Simplex1D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
     where THash : IHash8<THash>
     where TGradient : struct, IAnalyticalGradient1D<THash>
 {
-    private const float ValueBaseNormalization = 1f;
-    private const float ValueDerivativeNormalization = ValueBaseNormalization / 3.375f;
+    // Gradient noise constants
+    private const float GradientNormalization = 2.37037037f;
+    private const float GradientMaxPartialDerivative = 2.66018f;
 
-    private const float GradientBaseNormalization = 2.37037037f;
-    private const float GradientDerivativeNormalization = GradientBaseNormalization / 2.9016204f;
+    // Value noise constants
+    private const float ValueNormalization = 1f;
+    private const float ValueMaxPartialDerivative = 3.375f;
 
     private readonly float _normalization;
-    private readonly float _derivativeNormalization;
 
     [ModelTypeReference]
     public TGradient Gradient { get; }
+
+    public float MaxPartialDerivative
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
+
+    public float MaxGradientMagnitude => MaxPartialDerivative;
 
     [ModelConstructor]
     public Simplex1D(TGradient gradient = default)
     {
         Gradient = gradient;
 
-        if (gradient is Value<THash>)
+        if (typeof(TGradient) == typeof(Value<THash>))
         {
-            _normalization = ValueBaseNormalization;
-            _derivativeNormalization = ValueDerivativeNormalization;
+            _normalization = ValueNormalization;
+            MaxPartialDerivative = ValueMaxPartialDerivative;
         }
         else
         {
-            _normalization = GradientBaseNormalization;
-            _derivativeNormalization = GradientDerivativeNormalization;
+            _normalization = GradientNormalization;
+            MaxPartialDerivative = GradientMaxPartialDerivative;
         }
     }
 
@@ -61,7 +70,7 @@ public class Simplex1D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
         var k0 = KernelDerivative(hash.Eat(lattice0), lattice0, x);
         var k1 = KernelDerivative(hash.Eat(lattice1), lattice1, x);
 
-        return (k0 + k1) * frequency * _derivativeNormalization;
+        return (k0 + k1) * frequency * _normalization;
     }
 
     public NoiseSample<Point1D> Sample(THash hash, Point1D point, float frequency = 1f)
@@ -80,14 +89,8 @@ public class Simplex1D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
         return new()
         {
             Value = (k0.Value + k1.Value) * _normalization,
-            Derivatives = (k0.Dx + k1.Dx) * frequency * _derivativeNormalization,
+            Derivatives = (k0.Dx + k1.Dx) * frequency * _normalization,
         };
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float GetDerivativeNormalization(float forFrequency = 1f)
-    {
-        return 1f / forFrequency;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

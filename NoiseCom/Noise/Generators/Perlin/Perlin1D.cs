@@ -12,33 +12,39 @@ public class Perlin1D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, Po
     where THash : IHash8<THash>
     where TGradient : struct, IAnalyticalGradient1D<THash>
 {
-    private const float ValueBaseNormalization = 1f;
-    private const float ValueDerivativeNormalization = ValueBaseNormalization / 3.75f;
+    private const float GradientNormalization = 2f;
+    private const float GradientMaxPartialDerivative = 2.69430126f;
 
-    private const float GradientBaseNormalization = 2f;
-    private const float GradientDerivativeNormalization =
-        GradientBaseNormalization / 1.5366563145999f;
+    private const float ValueNormalization = 1f;
+    private const float ValueMaxPartialDerivative = 3.75f;
 
     private readonly float _normalization;
-    private readonly float _derivativeNormalization;
 
     [ModelTypeReference]
     public TGradient Gradient { get; }
+
+    public float MaxPartialDerivative
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
+
+    public float MaxGradientMagnitude => MaxPartialDerivative;
 
     [ModelConstructor]
     public Perlin1D(TGradient gradient = default)
     {
         Gradient = gradient;
 
-        if (gradient is Value<THash>)
+        if (typeof(TGradient) == typeof(Value<THash>))
         {
-            _normalization = ValueBaseNormalization;
-            _derivativeNormalization = ValueDerivativeNormalization;
+            _normalization = ValueNormalization;
+            MaxPartialDerivative = ValueMaxPartialDerivative;
         }
         else
         {
-            _normalization = GradientBaseNormalization;
-            _derivativeNormalization = GradientDerivativeNormalization;
+            _normalization = GradientNormalization;
+            MaxPartialDerivative = GradientMaxPartialDerivative;
         }
     }
 
@@ -65,7 +71,7 @@ public class Perlin1D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, Po
             Derivatives =
                 (Lerp(g0.Dx, g1.Dx, span.Fade) + (span.DFade * (g1.Value - g0.Value)))
                 * frequency
-                * _derivativeNormalization,
+                * _normalization,
         };
     }
 
@@ -77,12 +83,6 @@ public class Perlin1D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, Po
 
         return (Lerp(g0.Dx, g1.Dx, span.Fade) + (span.DFade * (g1.Value - g0.Value)))
             * frequency
-            * _derivativeNormalization;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float GetDerivativeNormalization(float forFrequency = 1f)
-    {
-        return 1f / forFrequency;
+            * _normalization;
     }
 }

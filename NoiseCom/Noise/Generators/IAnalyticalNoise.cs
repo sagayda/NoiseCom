@@ -9,5 +9,6 @@ public interface IAnalyticalNoise<in THash, TPoint> : INoise<THash, TPoint>
     public NoiseSample<TPoint> Sample(THash hash, TPoint point, float frequency = 1f);
     public TPoint GetDerivative(THash hash, TPoint point, float frequency = 1f);
 
-    public float GetDerivativeNormalization(float forFrequency = 1f);
+    public float MaxGradientMagnitude { get; }
+    public float MaxPartialDerivative { get; }
 }

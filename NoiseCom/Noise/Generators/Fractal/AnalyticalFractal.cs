@@ -11,6 +11,10 @@ public class AnalyticalFractal<[ModelHash] THash, [ModelDimension] TPoint, TNois
     where TPoint : struct, IDimensionalPoint<TPoint>
     where TNoise : IAnalyticalNoise<THash, TPoint>
 {
+    public float MaxGradientMagnitude => throw new NotImplementedException();
+
+    public float MaxPartialDerivative => throw new NotImplementedException();
+
     public AnalyticalFractal(TNoise noise)
         : base(noise) { }
 

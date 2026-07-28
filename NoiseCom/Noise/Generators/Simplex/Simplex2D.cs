@@ -15,15 +15,31 @@ public class Simplex2D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
 {
     private const float SkewFactor = 0.366025404f;
     private const float UnskewFactor = 0.211324865f;
+    private const float FrequencyNormalization = 0.57735027f;
 
-    private const float ValueBaseNormalization = 1f;
-    private const float ValueDerivativeNormalization = ValueBaseNormalization / 2.4284894f;
+    // Gradient noise constants
+    private const float GradientNormalization = 4.13351392f;
+    private const float GradientMaxPartialDerivative = 5.59962938f * FrequencyNormalization;
+    private const float GradientMaxGradientMagnitude = 5.72349291f * FrequencyNormalization;
 
-    private const float GradientBaseNormalization = 4.1238450038f;
-    private const float GradientDerivativeNormalization = GradientBaseNormalization / 2.380903f;
+    // Value noise constants
+    private const float ValueNormalization = 1f;
+    private const float ValueMaxPartialDerivative = 2.42862924f * FrequencyNormalization;
+    private const float ValueMaxGradientMagnitude = 4.35464843f * FrequencyNormalization;
 
     private readonly float _normalization;
-    private readonly float _derivativeNormalization;
+
+    public float MaxPartialDerivative
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
+
+    public float MaxGradientMagnitude
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
 
     [ModelTypeReference]
     public TGradient Gradient { get; }
@@ -33,21 +49,23 @@ public class Simplex2D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
     {
         Gradient = gradient;
 
-        if (gradient is Value<THash>)
+        if (typeof(TGradient) == typeof(Value<THash>))
         {
-            _normalization = ValueBaseNormalization;
-            _derivativeNormalization = ValueDerivativeNormalization;
+            _normalization = ValueNormalization;
+            MaxPartialDerivative = ValueMaxPartialDerivative;
+            MaxGradientMagnitude = ValueMaxGradientMagnitude;
         }
         else
         {
-            _normalization = GradientBaseNormalization;
-            _derivativeNormalization = GradientDerivativeNormalization;
+            _normalization = GradientNormalization;
+            MaxPartialDerivative = GradientMaxPartialDerivative;
+            MaxGradientMagnitude = GradientMaxGradientMagnitude;
         }
     }
 
     public float GetNoise(THash hash, Point2D point, float frequency = 1f)
     {
-        frequency *= 0.577350269f; // devide the coordinates by sqrt(3) ~= 0.577350269 to negotiante the skewing impact on the results
+        frequency *= FrequencyNormalization; // devide the coordinates by sqrt(3) ~= 0.577350269 to negotiante the skewing impact on the results
         var vPoint = point.Value * frequency;
 
         float px = vPoint.X;
@@ -80,7 +98,7 @@ public class Simplex2D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
 
     public NoiseSample<Point2D> Sample(THash hash, Point2D point, float frequency = 1f)
     {
-        frequency *= 0.577350269f; // devide the coordinates by sqrt(3) ~= 0.577350269 to negotiante the skewing impact on the results
+        frequency *= FrequencyNormalization; // devide the coordinates by sqrt(3) ~= 0.577350269 to negotiante the skewing impact on the results
         var vPoint = point.Value * frequency;
 
         float px = vPoint.X;
@@ -110,14 +128,13 @@ public class Simplex2D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
         {
             Value = (k0.Value + k1.Value + k2.Value) * _normalization,
             Derivatives =
-                (k0.Derivatives + k1.Derivatives + k2.Derivatives)
-                * (frequency * _derivativeNormalization),
+                (k0.Derivatives + k1.Derivatives + k2.Derivatives) * (frequency * _normalization),
         };
     }
 
     public Point2D GetDerivative(THash hash, Point2D point, float frequency = 1f)
     {
-        frequency *= 0.577350269f; // devide the coordinates by sqrt(3) ~= 0.577350269 to negotiante the skewing impact on the results
+        frequency *= FrequencyNormalization; // devide the coordinates by sqrt(3) ~= 0.577350269 to negotiante the skewing impact on the results
         var vPoint = point.Value * frequency;
 
         float px = vPoint.X;
@@ -143,13 +160,7 @@ public class Simplex2D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
                 ? KernelDerivative(h1.Eat(y0), x1, y0, vPoint)
                 : KernelDerivative(h0.Eat(y1), x0, y1, vPoint);
 
-        return (k0 + k1 + k2) * (frequency * _derivativeNormalization);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float GetDerivativeNormalization(float forFrequency = 1f)
-    {
-        return 1f / forFrequency;
+        return (k0 + k1 + k2) * (frequency * _normalization);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
