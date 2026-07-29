@@ -12,6 +12,9 @@ public readonly struct FractalSettings
     /// high-frequency noise layers, resulting in more natural, terrain-like textures
     /// at the cost of increased computation time.
     /// </para>
+    /// <para>
+    /// The default value is <c>4</c>.
+    /// </para>
     /// </summary>
     [ModelProperty]
     public int Octaves
@@ -29,6 +32,9 @@ public readonly struct FractalSettings
     /// A typical value of 2.0 means each octave is twice as detailed (half the size)
     /// as the previous one.
     /// </para>
+    /// <para>
+    /// The default value is <c>2.0f</c>.
+    /// </para>
     /// </summary>
     [ModelProperty]
     public float Lacunarity
@@ -45,6 +51,9 @@ public readonly struct FractalSettings
     /// Determines the visual weight or influence of each subsequent layer.
     /// A typical value of 0.5 means each octave contributes half as much as the previous one,
     /// ensuring that macro-features dominate the shape while micro-features add subtle surface texture.
+    /// </para>
+    /// <para>
+    /// The default value is <c>0.5f</c>.
     /// </para>
     /// </summary>
     [ModelProperty]

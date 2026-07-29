@@ -4,8 +4,6 @@ namespace NoiseCom;
 public interface IDimensionalPoint<TSelf>
     where TSelf : struct, IDimensionalPoint<TSelf>
 {
-    public abstract float X { get; }
-
     public static abstract TSelf operator +(TSelf left, TSelf right);
 
     public static abstract TSelf operator -(TSelf left, TSelf right);
@@ -16,5 +14,8 @@ public interface IDimensionalPoint<TSelf>
 
     public static abstract TSelf operator /(TSelf left, float right);
 
+    public static abstract TSelf Filled(float value);
+
+    public abstract float Length();
     public abstract float LengthSquared();
 }

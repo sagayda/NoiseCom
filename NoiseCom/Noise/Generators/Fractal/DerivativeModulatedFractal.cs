@@ -3,7 +3,7 @@ using NoiseCom.Serialization;
 
 namespace NoiseCom.Noise.Generators.Fractal;
 
-[ModelType("Fractal")]
+[ModelType("DerivativeModulatedFractal")]
 public class DerivativeModulatedFractal<[ModelHash] THash, [ModelDimension] TPoint, TNoise>
     : INoise<THash, TPoint>
     where THash : IHash<THash>
@@ -11,7 +11,7 @@ public class DerivativeModulatedFractal<[ModelHash] THash, [ModelDimension] TPoi
     where TNoise : IAnalyticalNoise<THash, TPoint>
 {
     [ModelInline]
-    public FractalSettings Config { get; set; }
+    public DerivativeModulatedFractalSettings Config { get; set; }
 
     [ModelReference]
     public TNoise Noise { get; }
@@ -19,11 +19,11 @@ public class DerivativeModulatedFractal<[ModelHash] THash, [ModelDimension] TPoi
     public DerivativeModulatedFractal(TNoise noise)
     {
         Noise = noise;
-        Config = FractalSettings.Default;
+        Config = DerivativeModulatedFractalSettings.Default;
     }
 
     [ModelConstructor]
-    public DerivativeModulatedFractal(TNoise noise, FractalSettings config)
+    public DerivativeModulatedFractal(TNoise noise, DerivativeModulatedFractalSettings config)
     {
         Noise = noise;
         Config = config;
@@ -33,58 +33,29 @@ public class DerivativeModulatedFractal<[ModelHash] THash, [ModelDimension] TPoi
     {
         float amplitude = 1f,
             amplitudeSum = 0f,
-            // frequency = Config.Frequency,
-            valueSum = 0f,
-            initialFrequency = frequency;
-
-        TPoint derivativeSum = new();
-
-        // var s = Noise.Sample(hash, point, frequency);
-        // return (s.Derivatives / frequency).LengthSquared();
+            sum = 0f;
 
         for (int octave = 0; octave < Config.Octaves; octave++)
         {
             var sample = Noise.Sample(hash.Shift(octave), point, frequency);
+            sum += amplitude * sample.Value;
 
-            valueSum += amplitude * sample.Value;
+            var derivativeNorm = 1f / (frequency * Noise.MaxGradientMagnitude);
+            var weight = (sample.Derivatives * derivativeNorm).LengthSquared();
 
-            var weight = (sample.Derivatives / frequency).LengthSquared();
-            weight = (weight + 2f) / 7f;
-            // return sample.Derivatives.X * (1f / frequency);
-            // return sample.Derivatives.X / frequency * 0.420014064f;
-            return sample.Value;
-            // return sample.Derivatives.X / frequency;
-            // return weight;
-            // weight = (weight * weight) * (3f - 2f * weight);
-            // weight = weight * weight;
-            // weight = (weight + 0f) / (weight + 2f);
-            // return weight;
-
-            // float weight = 1f / (1f + (derivativeSum / initialFrequency).LengthSquared());
-            // float weight = (derivativeSum / initialFrequency).LengthSquared() * 0.2f;
-            // weight = 1f / (1f + weight);
-
-            // float weight = (derivativeSum / initialFrequency).LengthSquared();
-            // weight = 1f / (1f + weight);
-            // weight = (weight + 0f) / (weight + 1f);
-            // weight = weight / (weight + 1f);
-            // if (octave == 0)
-            //     weight = 1f;
-            // else
-            //     return weight;
-
-            // weight = weight * weight * weight;
-
-            // valueSum += amplitude * sample.Value * weight;
-            // valueSum += amplitude * Noise.GetNoise(hash.Shift(octave), point, frequency);
-            //
-            // derivativeSum += amplitude * sample.Derivatives;
+            // EffectiveMaximum here allows to stretch the most statistically often range of values (eg. [0; 0.8], bigger gradients are very rare) to the range [0; 1]
+            // if Invert == false, we cut off the top (eg. [0.8; 1])
+            // else we cut off the inverted bottom (eg. [0; 0.2])
+            weight = Config.Invert ? (-weight - 1f - Config.EffectiveMaximum) : weight;
+            weight /= Config.EffectiveMaximum;
+            // also we need to clamp the result to avoid artifacts on low EffectiveMaximum values
+            weight = Math.Clamp(weight, 0f, 1f);
 
             amplitudeSum += amplitude;
             frequency *= Config.Lacunarity;
             amplitude *= Config.Persistence * weight;
         }
 
-        return valueSum / amplitudeSum;
+        return sum / amplitudeSum;
     }
 }

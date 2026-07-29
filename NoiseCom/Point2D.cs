@@ -50,5 +50,13 @@ public readonly struct Point2D : IDimensionalPoint<Point2D>
     public static implicit operator Point2D(Vector2 value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float LengthSquared() => (X * X) + (Y * Y);
+    public static Point2D Filled(float value) => new(value, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float LengthSquared() => Value.LengthSquared();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float Length() => Value.Length();
+
+    public override string ToString() => $"<{X}, {Y}>";
 }

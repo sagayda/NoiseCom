@@ -33,5 +33,13 @@ public readonly struct Point1D(float value) : IDimensionalPoint<Point1D>
     public static implicit operator Point1D(float value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Point1D Filled(float value) => new(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float LengthSquared() => X * X;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float Length() => X;
+
+    public override string ToString() => $"<{X}>";
 }
