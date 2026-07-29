@@ -24,7 +24,7 @@ public class Simplex2D<[ModelHash] THash, TGradient> : IAnalyticalNoise<THash, P
 
     // Value noise constants
     private const float ValueNormalization = 1f;
-    private const float ValueMaxPartialDerivative = 2.42862924f * FrequencyNormalization;
+    private const float ValueMaxPartialDerivative = 4.20626738f * FrequencyNormalization;
     private const float ValueMaxGradientMagnitude = 4.35464843f * FrequencyNormalization;
 
     private readonly float _normalization;
